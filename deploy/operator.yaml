@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cdkube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: cdkube
+  template:
+    metadata:
+      labels:
+        name: cdkube
+    spec:
+      containers:
+        - name: cdkube
+          image: inge4pres/cdkube:v0.0.1
+          command:
+          - cdkube
+          imagePullPolicy: Always
