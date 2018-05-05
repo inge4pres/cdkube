@@ -76,6 +76,7 @@ func newDockerBuilderPod(pipe *v1alpha1.Pipeline) *v1.Pod {
 			Name:    "builder",
 			Image:   pipe.Spec.BuildImage,
 			Command: pipe.Spec.BuildCmds,
+			Args:    pipe.Spec.BuildArgs,
 		},
 	}
 	return pod
@@ -83,8 +84,7 @@ func newDockerBuilderPod(pipe *v1alpha1.Pipeline) *v1.Pod {
 
 func namespacedPodForPipeline(pipe *v1alpha1.Pipeline, namespace string) *v1.Pod {
 	labels := map[string]string{
-		"app":  pipe.Spec.TargetName,
-		"repo": pipe.Spec.Repo,
+		"app": pipe.Spec.TargetName,
 	}
 	return &v1.Pod{
 		TypeMeta: metav1.TypeMeta{

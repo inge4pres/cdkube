@@ -79,6 +79,11 @@ func (in *PipelineSpec) DeepCopyInto(out *PipelineSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.BuildArgs != nil {
+		in, out := &in.BuildArgs, &out.BuildArgs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

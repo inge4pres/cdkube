@@ -26,6 +26,7 @@ type PipelineSpec struct {
 	Repo          string   `json:"repo"`
 	BuildImage    string   `json:"buildImage"`
 	BuildCmds     []string `json:"buildCommands"`
+	BuildArgs     []string `json:"buildArguments"`
 	TargetVersion string   `json:"targetVersion"`
 	TargetName    string   `json:"targetName"`
 }

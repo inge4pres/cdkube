@@ -1,4 +1,25 @@
 apiVersion: "delivery.inge.4pr.es/v1alpha1"
 kind: "Pipeline"
 metadata:
-  name: "example"
+  name: "doing-nothing"
+  namespace: default
+spec:
+  repo: "http://github.com/inge4pres/just-a-test"
+  buildImage: "busybox"
+  buildCmds:
+  - "/bin/sh"
+  - "-c"
+  buildArgs:
+  - echo
+  - "building something..."
+  - "&&"
+  - sleep
+  - 30
+  - "&&"
+  - "echo"
+  - "I'm done"
+  targetName: "testapp"
+  targetVersion: "0.1"
+
+
+  
