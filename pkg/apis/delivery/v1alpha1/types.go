@@ -23,11 +23,11 @@ type Pipeline struct {
 
 // PipelineSpec is the specification of the object
 type PipelineSpec struct {
-	Repo          string `json:"repo"`
-	BuildImage    string `json:"build_image"`
-	BuildCmd      string `json:"build_cmd"`
-	TargetVersion string `json:"target_version"`
-	TargetName    string `json:"target_name"`
+	Repo          string   `json:"repo"`
+	BuildImage    string   `json:"buildImage"`
+	BuildCmds     []string `json:"buildCommands"`
+	TargetVersion string   `json:"targetVersion"`
+	TargetName    string   `json:"targetName"`
 }
 
 // PipelineStatus represents the status in k8s

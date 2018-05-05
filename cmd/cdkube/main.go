@@ -4,7 +4,7 @@ import (
 	"context"
 	"runtime"
 
-	stub "github.com/inge4pres/cdkube/cdkube/pkg/stub"
+	stub "github.com/inge4pres/cdkube/pkg/stub"
 	sdk "github.com/operator-framework/operator-sdk/pkg/sdk"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 
