@@ -21,9 +21,17 @@ type Pipeline struct {
 	Status            PipelineStatus `json:"status,omitempty"`
 }
 
+// PipelineSpec is the specification of the object
 type PipelineSpec struct {
-	// Fill me
+	Repo          string `json:"repo"`
+	BuildImage    string `json:"build_image"`
+	BuildCmd      string `json:"build_cmd"`
+	TargetVersion string `json:"target_version"`
+	TargetName    string `json:"target_name"`
 }
+
+// PipelineStatus represents the status in k8s
 type PipelineStatus struct {
-	// Fill me
+	ID      string `json:"id"`
+	Success bool   `json:"success"`
 }
