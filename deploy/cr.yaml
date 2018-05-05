@@ -1,0 +1,4 @@
+apiVersion: "delivery.inge.4pr.es/v1alpha1"
+kind: "Pipeline"
+metadata:
+  name: "example"
