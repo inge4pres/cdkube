@@ -19,7 +19,7 @@ import (
 
 func NewHandler() handler.Handler {
 	return &Handler{
-		CheckInterval: 500 * time.Millisecond,
+		CheckInterval: 1000 * time.Millisecond,
 	}
 }
 
@@ -31,7 +31,7 @@ func (h *Handler) Handle(ctx types.Context, event types.Event) error {
 	switch o := event.Object.(type) {
 	case *v1alpha1.Pipeline:
 		pipe := o
-		builder := newDockerBuilderPod(o)
+		builder := newBuilderPod(o, "default")
 		err := action.Create(builder)
 		if err != nil && !errors.IsAlreadyExists(err) {
 			logrus.Errorf("could not create pod for pipeline: %v", err)
@@ -49,40 +49,33 @@ func (h *Handler) Handle(ctx types.Context, event types.Event) error {
 			logrus.Errorf("could not read the state of builder pod: %v", err)
 			return err
 		}
+
+		logrus.Infof("current pipeline request: %v", pipe.Spec)
+		logrus.Infof("current builder pod info: %v", builder.Spec.Containers[0])
+
 		done := make(chan bool)
 		timer := time.NewTicker(h.CheckInterval)
-		go finished(builder, done, h.CheckInterval)
 	Building:
 		for {
 			select {
 			case <-done:
-				pipe.Status.Success = true
 				break Building
 
 			case <-timer.C:
-				logrus.Infof("build still running, status of builder container %v", builder.Status.ContainerStatuses)
+				logrus.Infof("build still running, status of builder container: %s", builder.Status.Phase)
+				podSucceded(builder, done)
 			}
 		}
+		pipe.Status.Success = true
+		logrus.Info("pipeline completed successfully")
 
 	}
 	return nil
 }
 
-func newDockerBuilderPod(pipe *v1alpha1.Pipeline) *v1.Pod {
-
-	pod := namespacedPodForPipeline(pipe, "default")
-	pod.Spec.Containers = []v1.Container{
-		{
-			Name:    "builder",
-			Image:   pipe.Spec.BuildImage,
-			Command: pipe.Spec.BuildCmds,
-			Args:    pipe.Spec.BuildArgs,
-		},
-	}
-	return pod
-}
-
-func namespacedPodForPipeline(pipe *v1alpha1.Pipeline, namespace string) *v1.Pod {
+func newBuilderPod(pipe *v1alpha1.Pipeline, namespace string) *v1.Pod {
+	// spec := builderSpec(pipe.Spec.BuildImage, pipe.Spec.BuildCmds, pipe.Spec.BuildArgs)
+	// return namespacedPodForPipeline(pipe, namespace, *spec)
 	labels := map[string]string{
 		"app": pipe.Spec.TargetName,
 	}
@@ -103,15 +96,59 @@ func namespacedPodForPipeline(pipe *v1alpha1.Pipeline, namespace string) *v1.Pod
 			},
 			Labels: labels,
 		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:    "builder",
+					Image:   pipe.Spec.BuildImage,
+					Command: pipe.Spec.BuildCmds,
+					Args:    pipe.Spec.BuildArgs,
+				},
+			},
+		},
 	}
 }
 
-func finished(b *v1.Pod, done chan bool, checkInterval time.Duration) {
-	for {
-		if b.Status.Phase == v1.PodSucceeded {
-			done <- true
-			return
-		}
-		time.Sleep(checkInterval)
+func builderSpec(image string, commands, args []string) *v1.PodSpec {
+	return &v1.PodSpec{
+		Containers: []v1.Container{
+			{
+				Name:    "builder",
+				Image:   image,
+				Command: commands,
+				Args:    args,
+			},
+		},
+	}
+}
+
+func namespacedPodForPipeline(pipe *v1alpha1.Pipeline, namespace string, containersSpec v1.PodSpec) *v1.Pod {
+	labels := map[string]string{
+		"app": pipe.Spec.TargetName,
+	}
+	return &v1.Pod{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Pod",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pipe.Spec.TargetName,
+			Namespace: namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(pipe, schema.GroupVersionKind{
+					Group:   v1alpha1.SchemeGroupVersion.Group,
+					Version: v1alpha1.SchemeGroupVersion.Version,
+					Kind:    "Pipeline",
+				}),
+			},
+			Labels: labels,
+		},
+		Spec: containersSpec,
+	}
+}
+
+func podSucceded(pod *v1.Pod, done chan bool) {
+	if pod.Status.Phase == v1.PodSucceeded {
+		done <- true
 	}
 }

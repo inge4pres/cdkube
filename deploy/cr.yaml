@@ -6,18 +6,11 @@ metadata:
 spec:
   repo: "http://github.com/inge4pres/just-a-test"
   buildImage: "busybox"
-  buildCmds:
-  - "/bin/sh"
-  - "-c"
-  buildArgs:
-  - echo
-  - "building something..."
-  - "&&"
-  - sleep
-  - 30
-  - "&&"
+  buildCommands:
   - "echo"
-  - "I'm done"
+  buildArguments:
+  - "building something..."
+  - "now I'm done"
   targetName: "testapp"
   targetVersion: "0.1"
 
